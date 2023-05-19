@@ -1,5 +1,7 @@
 var express = require('express');
 var router = express.Router();
+const moment = require('moment')
+
 const { MongoClient } = require('mongodb');
 // Connection URL
 const mongoURL = 'mongodb://localhost:27017/breadsdb';
@@ -20,8 +22,13 @@ router.get('/data', async (req, res, next) =>{
 
     const collection = db.collection('data');
     const data = await collection.find().toArray();
+    const processedData = [];
+      data.forEach(item => {
+        const formattedDate = moment(item.date).format('YYYY-MMMM-DD');
+        processedData.push({ ...item, date: formattedDate });
+      });
 
-    res.json(data)
+    res.json(processedData)
     // res.render('index', {data:results})
   } catch (error) {
     console.error('Error Connecting to MongoDB:',error)
