@@ -26,12 +26,11 @@
 <body>
     <div class="container">
         <h1>BREADS (Browse, Read, Update, Delete, Sort)</h1>
-        <h4>Filters</h4>
+        <h4>Add Data</h4>
         <form id="create-form">
             <input type="hidden" name="page" value="1">
             <div class="row mb-3">
                 <label for="inputId" class="col-sm-4 col-form-label">
-                    <input type="checkbox" name="checkId" id="checkId">
                     ID
                 </label>
                 <div class="col-sm-8">
@@ -40,7 +39,6 @@
             </div>
             <div class="row mb-3">
                 <label for="inputStr" class="col-sm-4 col-form-label">
-                    <input type="checkbox" name="checkStr" id="checkStr">
                     String
                 </label>
                 <div class="col-sm-8">
@@ -49,7 +47,6 @@
             </div>
             <div class="row mb-3">
                 <label for="inputInt" class="col-sm-4 col-form-label">
-                    <input type="checkbox" name="checkInt" id="checkInt">
                     Integer
                 </label>
                 <div class="col-sm-8">
@@ -58,7 +55,6 @@
             </div>
             <div class="row mb-3">
                 <label for="inputFloat" class="col-sm-4 col-form-label">
-                    <input type="checkbox" name="checkFloat" id="checkFloat">
                     Float
                 </label>
                 <div class="col-sm-8">
@@ -67,18 +63,14 @@
             </div>
             <div class="row mb-3">
                 <label for="inputDate" class="col-sm-4 col-form-label">
-                    <input type="checkbox" name="checkDate" id="checkDate">
                     Date
                 </label>
                 <div class="col-sm-4">
                     <input type="date" class="form-control" id="startDate" name="startDate">
-                    to
-                    <input type="date" class="form-control" id="endDate" name="endDate">
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="inputBol" class="col-sm-4 col-form-label">
-                    <input type="checkbox" name="checkBol" id="checkBol">
                     Boolean
                 </label>
                 <div class="col-sm-8">
@@ -147,7 +139,6 @@
     </div>
 
     <script type="text/javascript">
-
         // document.addEventListener('DOMContentLoaded', () => {
         //     const createForm = document.getElementById('create-form');
         //     createForm.addEventListener('submit', createData);
@@ -155,13 +146,13 @@
         // })
         document.getElementById('create-form').addEventListener("submit", function (event) {
             event.preventDefault();
-            const id = document.getElementById('id').value
+            const number = document.getElementById('id').value
             const string = document.getElementById('string').value
             const integer = document.getElementById('integer').value
             const float = document.getElementById('float').value
             const date = document.getElementById('startDate').value
             const boolean = document.getElementById('boolean').value
-            createData(id,string,integer,float,date,boolean)
+            createData(number, string, integer, float, date, boolean)
         })
         async function readData() {
             try {
@@ -183,14 +174,14 @@
             data.forEach((item, index) => {
                 html += `
         <tr>
-            <td>${item.id}</td>
+            <td>${item.number}</td>
             <td>${item.string}</td>
             <td>${item.integer}</td>
             <td>${item.float}</td>
             <td>${item.date}</td>
             <td>${item.boolean}</td>
             <td>
-                <a href="" class="btn btn-success btn-sm">Edit</a>
+                <button class="btn btn-success btn-sm" onclick="updateData('${item._id}')">Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteData('${item._id}')">Hapus</button>
             </td>
         </tr>`
@@ -198,17 +189,22 @@
             document.getElementById('data-body').innerHTML = html;
         }
 
-        async function createData(id, string, integer, float, date, boolean) {
+        async function createData(number, string, integer, float, date, boolean) {
             try {
 
                 const data = {
-                    id: id,
+                    number: number,
                     string: string,
                     integer: integer,
                     float: float,
                     date: date,
                     boolean: boolean
                 };
+
+                if (!number || !string || !integer || !float || !date || !boolean) {
+                    alert('Please, Insert the data')
+                    return
+                }
 
                 const response = await fetch('http://localhost:3100/data', {
                     method: 'POST',
@@ -220,7 +216,7 @@
                 if (response.ok) {
                     const result = await response.json();
                     console.log("Success:", result);
-                    const id = document.getElementById('id').value = ''
+                    const number = document.getElementById('id').value = ''
                     const string = document.getElementById('string').value = ''
                     const integer = document.getElementById('integer').value = ''
                     const float = document.getElementById('float').value = ''
@@ -231,6 +227,50 @@
                     console.error('Error creating data');
                 }
 
+            } catch (error) {
+                console.log(error)
+            }
+        }
+
+        async function updateData(id) {
+            try {
+                const number = document.getElementById('id').value; // Assuming 'number' is the ID of the input field for the number value
+                const string = document.getElementById('string').value;
+                const integer = document.getElementById('integer').value;
+                const float = document.getElementById('float').value;
+                const date = document.getElementById('startDate').value;
+                const boolean = document.getElementById('boolean').value;
+                const data = {
+                    number: number,
+                    string: string,
+                    integer: integer,
+                    float: float,
+                    date: date,
+                    boolean: boolean
+                }
+                if (!number || !string || !integer || !float || !date || !boolean) {
+                    alert('Please,Insert the data')
+                    return
+                }
+                const response = await fetch(`http://localhost:3100/data/${id}`,{
+                    method:'PUT',
+                    headers:{
+                        'Content-Type' : 'application/json'
+                    },
+                    body:JSON.stringify(data)
+                })
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log("Success: ", result)
+                    // Clear the input fields
+                    document.getElementById('id').value = '';
+                    document.getElementById('string').value = '';
+                    document.getElementById('integer').value = '';
+                    document.getElementById('float').value = '';
+                    document.getElementById('startDate').value = '';
+                    document.getElementById('boolean').value = '';
+                    readData()
+                }
             } catch (error) {
                 console.log(error)
             }

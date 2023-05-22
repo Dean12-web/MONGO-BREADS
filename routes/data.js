@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
         const totalPage = Math.ceil(total /limit)
         const data = await collection
         .find()
-        .sort({id:1})
+        .sort({number:1})
         // .limit(limit)
         // .skip(skip)
         .toArray();
@@ -35,11 +35,11 @@ router.get('/', async (req, res) => {
 router.put('/:id',async (req,res)=>{
     try {
         const{id}=req.params
-        const{string,integer,float,date,boolean} =req.body
+        const{number, string,integer,float,date,boolean} =req.body
         const db = req.app.locals.db;
         const collection = db.collection('data');
         const result = await collection.updateMany({_id: new ObjectID(id)},{
-            $set : {string:string, integer:parseInt(integer), float:parseFloat(float), date:date, boolean:boolean}
+            $set : {number : parseInt(number), string:string, integer:parseInt(integer), float:parseFloat(float), date:date, boolean:boolean}
         });
         res.json(result)
     } catch (error) {
@@ -50,14 +50,14 @@ router.put('/:id',async (req,res)=>{
 
 router.post('/', async (req, res) => {
     try {
-        const {id,string,integer,float,date,boolean} = req.body
-        if(!id){
+        const {number,string,integer,float,date,boolean} = req.body
+        if(!number){
             res.status(400).json({error: "Value are required"})
             // alert('Input data')
         }
         const db = req.app.locals.db;
         const collection = db.collection('data');
-        const result = await collection.insertOne({ id: parseInt(id), string: string,integer: parseInt(integer), float: parseFloat(float), date: date, boolean: boolean })
+        const result = await collection.insertOne({ number: parseInt(number), string: string,integer: parseInt(integer), float: parseFloat(float), date: date, boolean: boolean })
         res.json(result)
     } catch (error) {
         console.error(error);
