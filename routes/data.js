@@ -50,7 +50,11 @@ router.put('/:id',async (req,res)=>{
 
 router.post('/', async (req, res) => {
     try {
-        const { id, string, integer, float, date, boolean } = req.body
+        const {id,string,integer,float,date,boolean} = req.body
+        if(!id){
+            res.status(400).json({error: "Value are required"})
+            // alert('Input data')
+        }
         const db = req.app.locals.db;
         const collection = db.collection('data');
         const result = await collection.insertOne({ id: parseInt(id), string: string,integer: parseInt(integer), float: parseFloat(float), date: date, boolean: boolean })

@@ -27,7 +27,7 @@
     <div class="container">
         <h1>BREADS (Browse, Read, Update, Delete, Sort)</h1>
         <h4>Filters</h4>
-        <form action="/" method="get">
+        <form id="create-form">
             <input type="hidden" name="page" value="1">
             <div class="row mb-3">
                 <label for="inputId" class="col-sm-4 col-form-label">
@@ -89,7 +89,8 @@
                     </select>
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary">Search</button>
+            <!-- <button class="btn btn-primary">Search</button> -->
+            <button type="submit" class="btn btn-primary">Add</button>
             <a href="/" class="btn btn-secondary">Back</a>
         </form>
     </div>
@@ -143,10 +144,25 @@
         <br>
         <div class="pagination" id="pagination">
         </div>
-        <button class="btn btn-primary"><a href="" class="text-decoration-none text-white">Add</a></button>
     </div>
 
     <script type="text/javascript">
+
+        // document.addEventListener('DOMContentLoaded', () => {
+        //     const createForm = document.getElementById('create-form');
+        //     createForm.addEventListener('submit', createData);
+        //     readData()
+        // })
+        document.getElementById('create-form').addEventListener("submit", function (event) {
+            event.preventDefault();
+            const id = document.getElementById('id').value
+            const string = document.getElementById('string').value
+            const integer = document.getElementById('integer').value
+            const float = document.getElementById('float').value
+            const date = document.getElementById('startDate').value
+            const boolean = document.getElementById('boolean').value
+            createData(id,string,integer,float,date,boolean)
+        })
         async function readData() {
             try {
                 const response = await fetch(`http://localhost:3100/data`);
@@ -180,6 +196,44 @@
         </tr>`
             });
             document.getElementById('data-body').innerHTML = html;
+        }
+
+        async function createData(id, string, integer, float, date, boolean) {
+            try {
+
+                const data = {
+                    id: id,
+                    string: string,
+                    integer: integer,
+                    float: float,
+                    date: date,
+                    boolean: boolean
+                };
+
+                const response = await fetch('http://localhost:3100/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log("Success:", result);
+                    const id = document.getElementById('id').value = ''
+                    const string = document.getElementById('string').value = ''
+                    const integer = document.getElementById('integer').value = ''
+                    const float = document.getElementById('float').value = ''
+                    const date = document.getElementById('startDate').value = ''
+                    const boolean = document.getElementById('boolean').value = ''
+                    readData()
+                } else {
+                    console.error('Error creating data');
+                }
+
+            } catch (error) {
+                console.log(error)
+            }
         }
         async function deleteData(id) {
             try {
