@@ -7,7 +7,7 @@ const ObjectId = require('mongodb').ObjectId
 /* GET home page. */
 
 router.get('/', (req,res)=>{
-  res.render('index')
+  res.render('indexVanilla')
 })
 
 

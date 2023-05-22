@@ -6,12 +6,23 @@ const ObjectID = require('mongodb').ObjectId
 
 router.get('/', async (req, res) => {
     try {
+        let params = {}
         const db = req.app.locals.db;
         const collection = db.collection('data');
-        const data = await collection.find().toArray();
+        const page = parseInt(req.query.page) || 1
+        const limit = 3
+        const skip = (page - 1) * limit;
+        const total = await collection.countDocuments()
+        const totalPage = Math.ceil(total /limit)
+        const data = await collection
+        .find()
+        .sort({id:1})
+        // .limit(limit)
+        // .skip(skip)
+        .toArray();
         const processData = [];
         data.forEach(item => {
-            const formattedDate = moment(item.date).format('YYYY-MMMM-DD');
+            const formattedDate = moment(new Date(item.date)).format('YYYY-MMMM-DD');
             processData.push({ ...item, date: formattedDate })
         });
         res.json(processData)
