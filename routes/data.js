@@ -23,8 +23,8 @@ router.get('/', async function (req, res, next) {
         if (req.query.checkDate && req.query.startDate && req.query.endDate) {
             params.push({
                 date: {
-                    $gte: new Date(req.query.startDate),
-                    $lte: new Date(req.query.endDate)
+                    $gte: req.query.startDate,
+                    $lte: req.query.endDate
                 }
             });
         }
@@ -39,8 +39,8 @@ router.get('/', async function (req, res, next) {
         const page = parseInt(req.query.page) || 1;
         const limit = 3;
         const offset = (page - 1) * limit;
-        query = query.skip(offset).limit(limit);
-
+        query = query.sort({number:1}).skip(offset).limit(limit);
+// document.getElementById("create-form").style.display = 'none'
         const total = await collection.countDocuments(params.length > 0 ? { $and: params } : {});
         const pages = Math.ceil(total / limit);
 

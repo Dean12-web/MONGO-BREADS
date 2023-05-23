@@ -151,7 +151,7 @@
                 url: "http://localhost:3100/data"
             }).done(function (data) {
                 let html = "";
-                data.forEach(item => {
+                data.data.forEach(item => {
                     html += `
                     <tr>
                         <td>${item.number}</td>
