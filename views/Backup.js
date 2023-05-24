@@ -102,13 +102,7 @@ router.post('/', async (req, res) => {
         }
         const db = req.app.locals.db;
         const collection = db.collection('data');
-        const result = await collection.insertOne({ 
-            number: parseInt(number), 
-            string: string, 
-            integer: parseInt(integer), 
-            float: parseFloat(float), 
-            date: date, 
-            boolean: boolean === 'true' })
+        const result = await collection.insertOne({ number: parseInt(number), string: string, integer: parseInt(integer), float: parseFloat(float), date: date, boolean: boolean })
         res.json(result)
     } catch (error) {
         console.error(error);
