@@ -169,11 +169,6 @@
     </div>
 
     <script type="text/javascript">
-        // document.addEventListener('DOMContentLoaded', () => {
-        //     const createForm = document.getElementById('create-form');
-        //     createForm.addEventListener('submit', createData);
-        //     readData()
-        // })
         let params = {
             page: 1
         };
@@ -190,6 +185,10 @@
 
         document.getElementById('filter-form').addEventListener("submit", function (event) {
             event.preventDefault();
+            params.page = 1; // Reset page to 1 when applying new filters
+            readData(getFilterParams());
+        })
+        function getFilterParams() {
             const checkId = document.getElementById('checkId').checked;
             const checkStr = document.getElementById('checkStr').checked;
             const checkInt = document.getElementById('checkInt').checked;
@@ -205,8 +204,7 @@
             const endDate = document.getElementById('endDateFilter').value;
             const boolean = document.getElementById('booleanFilter').value;
 
-            const filterParams = {
-                page: 1,
+            return {
                 checkId: checkId,
                 id: id,
                 checkStr: checkStr,
@@ -220,9 +218,8 @@
                 endDate: endDate,
                 checkBol: checkBol,
                 boolean: boolean
-            }
-            readData(filterParams);
-        })
+            };
+        }
         async function readData(filterParams) {
             try {
                 const queryString = new URLSearchParams(filterParams).toString();
@@ -243,7 +240,7 @@
         function changePage(page) {
             console.log('Page:', page);
             params.page = page;
-            readData();
+            readData(getFilterParams());
         }
         function displayData(data) {
             let html = "";
