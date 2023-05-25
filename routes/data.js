@@ -7,7 +7,9 @@ const ObjectID = require('mongodb').ObjectId
 router.get('/', async function (req, res, next) {
     try {
         const params = [];
-
+        let sortby = req.query.sortby || 'number';
+        let sortorder = req.query.sortorder || 'asc'
+        
         if (req.query.checkId && req.query.id) {
             params.push({ number: parseInt(req.query.id) });
         }
@@ -44,12 +46,14 @@ router.get('/', async function (req, res, next) {
         const page = parseInt(req.query.page) || 1;
         const limit = 3;
         const offset = (page - 1) * limit;
-        query = query.sort({ number: 1 }).skip(offset).limit(limit);
+        query = query.sort({ [sortby]: sortorder }).limit(limit).skip(offset);
         const total = await collection.countDocuments(params.length > 0 ? { $and: params } : {});
         const pages = Math.ceil(total / limit);
 
         const queryParams = new URLSearchParams(req.query);
-        queryParams.delete('page');
+        queryParams.delete('sortby');
+        queryParams.delete('sortorder');
+        queryParams.set('page', '1'); // Remove the 'page' parameter from the query parameters
         const url = `${req.path}?${queryParams.toString()}`;
 
         const data = await query.toArray();
@@ -66,6 +70,8 @@ router.get('/', async function (req, res, next) {
             pages: pages,
             url: url,
             query: req.query,
+            sortby,
+            sortorder
         });
     } catch (err) {
         console.error(err);
@@ -80,7 +86,7 @@ router.get('/', async function (req, res, next) {
 router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params
-        const { number, string, integer, float, date} = req.body
+        const { number, string, integer, float, date } = req.body
         const db = req.app.locals.db;
         const collection = db.collection('data');
         const result = await collection.updateMany({ _id: new ObjectID(id) }, {
@@ -102,13 +108,14 @@ router.post('/', async (req, res) => {
         }
         const db = req.app.locals.db;
         const collection = db.collection('data');
-        const result = await collection.insertOne({ 
-            number: parseInt(number), 
-            string: string, 
-            integer: parseInt(integer), 
-            float: parseFloat(float), 
-            date: date, 
-            boolean: boolean === 'true' })
+        const result = await collection.insertOne({
+            number: parseInt(number),
+            string: string,
+            integer: parseInt(integer),
+            float: parseFloat(float),
+            date: date,
+            boolean: boolean === 'true'
+        })
         res.json(result)
     } catch (error) {
         console.error(error);

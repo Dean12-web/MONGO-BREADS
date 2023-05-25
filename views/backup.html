@@ -35,7 +35,7 @@
                     ID
                 </label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" id="id" name="id">
+                    <input type="text" class="form-control" id="idFilter" name="id">
                 </div>
             </div>
             <div class="row mb-3">
@@ -44,7 +44,7 @@
                     String
                 </label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" id="string" name="string">
+                    <input type="text" class="form-control" id="strFilter" name="string">
                 </div>
             </div>
             <div class="row mb-3">
@@ -53,7 +53,7 @@
                     Integer
                 </label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" id="integer" name="integer">
+                    <input type="text" class="form-control" id="intFilter" name="integer">
                 </div>
             </div>
             <div class="row mb-3">
@@ -62,7 +62,7 @@
                     Float
                 </label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" id="float" name="float">
+                    <input type="text" class="form-control" id="floatFilter" name="float">
                 </div>
             </div>
             <div class="row mb-3">
@@ -71,9 +71,9 @@
                     Date
                 </label>
                 <div class="col-sm-4">
-                    <input type="date" class="form-control" id="startDate" name="startDate">
+                    <input type="date" class="form-control" id="startDateFilter" name="startDate">
                     to
-                    <input type="date" class="form-control" id="endDate" name="endDate">
+                    <input type="date" class="form-control" id="endDateFilter" name="endDate">
                 </div>
             </div>
             <div class="row mb-3">
@@ -82,7 +82,7 @@
                     Boolean
                 </label>
                 <div class="col-sm-8">
-                    <select name="boolean" id="boolean" class="form-select">
+                    <select name="boolean" id="booleanFilter" class="form-select">
                         <option>Choose the boolean</option>
                         <option value="true">True</option>
                         <option value="false">False</option>
@@ -169,13 +169,10 @@
     </div>
 
     <script type="text/javascript">
-        // document.addEventListener('DOMContentLoaded', () => {
-        //     const createForm = document.getElementById('create-form');
-        //     createForm.addEventListener('submit', createData);
-        //     readData()
-        // })
         let params = {
-            page: 1
+            page: 1,
+            sortBy: '',
+            sortOrder: ''
         };
         document.getElementById('create-form').addEventListener("submit", function (event) {
             event.preventDefault();
@@ -190,6 +187,10 @@
 
         document.getElementById('filter-form').addEventListener("submit", function (event) {
             event.preventDefault();
+            params.page = 1; // Reset page to 1 when applying new filters
+            readData(getFilterParams());
+        })
+        function getFilterParams() {
             const checkId = document.getElementById('checkId').checked;
             const checkStr = document.getElementById('checkStr').checked;
             const checkInt = document.getElementById('checkInt').checked;
@@ -197,16 +198,15 @@
             const checkDate = document.getElementById('checkDate').checked;
             const checkBol = document.getElementById('checkBol').checked;
 
-            const id = document.getElementById('id').value;
-            const string = document.getElementById('string').value;
-            const integer = document.getElementById('integer').value;
-            const float = document.getElementById('float').value;
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            const boolean = document.getElementById('boolean').value;
+            const id = document.getElementById('idFilter').value;
+            const string = document.getElementById('strFilter').value;
+            const integer = document.getElementById('intFilter').value;
+            const float = document.getElementById('floatFilter').value;
+            const startDate = document.getElementById('startDateFilter').value;
+            const endDate = document.getElementById('endDateFilter').value;
+            const boolean = document.getElementById('booleanFilter').value;
 
-            const filterParams = {
-                page: 1,
+            return {
                 checkId: checkId,
                 id: id,
                 checkStr: checkStr,
@@ -220,19 +220,28 @@
                 endDate: endDate,
                 checkBol: checkBol,
                 boolean: boolean
-            }
-            readData(filterParams);
-        })
+            };
+        }
         async function readData(filterParams) {
             try {
+                // const paramsCopy = { ...params };
+                // const mergedParams = { ...paramsCopy, ...filterParams };
+
+                // let queryString = Object.keys(mergedParams)
+                //     .filter((key) => mergedParams[key] !== '')
+                //     .map((key) => `${key}=${mergedParams[key]}`)
+                //     .join('&');
+                // const response = await fetch(`http://localhost:3100/data?${queryString}`);
                 const queryString = new URLSearchParams(filterParams).toString();
                 const response = await fetch(`http://localhost:3100/data?page=${params.page}&${queryString}`);
                 if (response.ok) {
-                    const { data, page, pages, query } = await response.json();
+                    const { data, page, pages, query, sortOrder, sortBy } = await response.json();
                     params.page = page;
+                    params.sortBy = sortBy;
+                    params.sortOrder = sortOrder;
                     displayData(data);
                     pagination(page, pages);
-                    sortData();
+                    sortData(sortBy, sortOrder);
                 } else {
                     throw new Error("Error: " + response.status);
                 }
@@ -243,8 +252,15 @@
         function changePage(page) {
             console.log('Page:', page);
             params.page = page;
-            readData();
+            readData(getFilterParams());
         }
+        function changeSort(sortBy, sortOrder) {
+            console.log(`SortBy: ${sortBy}, SortOrder: ${sortOrder}`)
+            params.sortBy = sortBy;
+            params.sortOrder = sortOrder;
+            readData(params);
+        }
+
         function displayData(data) {
             let html = "";
             data.forEach((item, index) => {
@@ -287,7 +303,7 @@
             document.getElementById('pagination').innerHTML = html;
         }
 
-        function sortData() {
+        function sortData(sortBy, sortOrder) {
             let html = `
                                 <tr align="center">
                     <th>
@@ -304,8 +320,8 @@
                     </th>
                     <th>
                         Integer
-                        <a href="">
-                            <span class="fa fa-sort"></span>
+                        <a href="javascript:void(0)" onclick="changeSort('integer', '${sortOrder == 'asc' ? 'asc' : 'desc'}')">
+                            <i class="fa-solid fa-${sortBy == 'integer' ? sortOrder == 'asc' ? 'sort-up' : 'sort-down' : 'sort'} sort-icon" id="sort-icon-integer"></i>
                         </a>
                     </th>
                     <th>
@@ -454,3 +470,16 @@
 </body>
 
 </html>
+
+function changePage(page) {
+console.log('Page:', page);
+params.page = page;
+readData({sortby: params.sortby, sortorder: params.sortorder, page: page });
+}
+
+function changeSort(sortby, sortorder) {
+console.log(`SortBy: ${sortby}, SortOrder: ${sortorder}`);
+params.sortby = sortby; // Update sortby parameter in params
+params.sortorder = sortorder; // Update sortorder parameter in params
+readData({ sortby, sortorder, page: params.page }); // Pass sorting parameters and current page
+}

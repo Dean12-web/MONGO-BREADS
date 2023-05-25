@@ -170,7 +170,9 @@
 
     <script type="text/javascript">
         let params = {
-            page: 1
+            page: 1,
+            sortBy: '',
+            sortOrder: ''
         };
         document.getElementById('create-form').addEventListener("submit", function (event) {
             event.preventDefault();
@@ -189,152 +191,72 @@
             readData(getFilterParams());
         })
         function getFilterParams() {
-            const checkId = document.getElementById('checkId').checked;
-            const checkStr = document.getElementById('checkStr').checked;
-            const checkInt = document.getElementById('checkInt').checked;
-            const checkFloat = document.getElementById('checkFloat').checked;
-            const checkDate = document.getElementById('checkDate').checked;
-            const checkBol = document.getElementById('checkBol').checked;
+            const filterParams = {};
 
-            const id = document.getElementById('idFilter').value;
-            const string = document.getElementById('strFilter').value;
-            const integer = document.getElementById('intFilter').value;
-            const float = document.getElementById('floatFilter').value;
-            const startDate = document.getElementById('startDateFilter').value;
-            const endDate = document.getElementById('endDateFilter').value;
-            const boolean = document.getElementById('booleanFilter').value;
+            if (document.getElementById('checkId').checked) {
+                filterParams.checkId = true;
+                filterParams.id = document.getElementById('idFilter').value;
+            }
 
-            return {
-                checkId: checkId,
-                id: id,
-                checkStr: checkStr,
-                string: string,
-                checkInt: checkInt,
-                integer: integer,
-                checkFloat: checkFloat,
-                float: float,
-                checkDate: checkDate,
-                startDate: startDate,
-                endDate: endDate,
-                checkBol: checkBol,
-                boolean: boolean
-            };
+            if (document.getElementById('checkStr').checked) {
+                filterParams.checkStr = true;
+                filterParams.string = document.getElementById('strFilter').value;
+            }
+
+            if (document.getElementById('checkInt').checked) {
+                filterParams.checkInt = true;
+                filterParams.integer = document.getElementById('intFilter').value;
+            }
+
+            if (document.getElementById('checkFloat').checked) {
+                filterParams.checkFloat = true;
+                filterParams.float = document.getElementById('floatFilter').value;
+            }
+
+            if (document.getElementById('checkDate').checked) {
+                filterParams.checkDate = true;
+                filterParams.startDate = document.getElementById('startDateFilter').value;
+                filterParams.endDate = document.getElementById('endDateFilter').value;
+            }
+
+            if (document.getElementById('checkBol').checked) {
+                filterParams.checkBol = true;
+                filterParams.boolean = document.getElementById('booleanFilter').value;
+            }
+
+            return filterParams;
         }
+
         async function readData(filterParams) {
             try {
-                const queryString = new URLSearchParams(filterParams).toString();
-                const response = await fetch(`http://localhost:3100/data?page=${params.page}&${queryString}`);
+                const mergedParams = { ...params, ...filterParams };
+                const queryString = Object.keys(mergedParams)
+                    .filter((key) => mergedParams[key] !== '')
+                    .map((key) => `${key}=${mergedParams[key]}`)
+                    .join('&');
+
+                const url = `http://localhost:3100/data?${queryString}`;
+
+                const response = await fetch(url);
+
                 if (response.ok) {
-                    const { data, page, pages, query } = await response.json();
+                    const { data, page, pages, query, sortby, sortorder } = await response.json();
                     params.page = page;
-                    displayData(data);
+                    displayData(data, sortby, sortorder);
                     pagination(page, pages);
-                    sortData();
+                    sortData(sortby, sortorder);
                 } else {
                     throw new Error("Error: " + response.status);
                 }
             } catch (error) {
                 console.log(error);
+                // Handle error, display a message
             }
         }
-        function changePage(page) {
-            console.log('Page:', page);
-            params.page = page;
-            readData(getFilterParams());
-        }
-        function displayData(data) {
-            let html = "";
-            data.forEach((item, index) => {
-                html += `
-        <tr>
-            <td>${item.number}</td>
-            <td>${item.string}</td>
-            <td>${item.integer}</td>
-            <td>${item.float}</td>
-            <td>${item.date}</td>
-            <td>${item.boolean}</td>
-            <td>
-                <button class="btn btn-success btn-sm" onclick="updateData('${item._id}')">Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteData('${item._id}')">Hapus</button>
-            </td>
-        </tr>`;
-            });
-            document.getElementById('data-body').innerHTML = html;
-        }
 
 
-        function pagination(currentPage, totalPages) {
-            let html = `
-                <li class="page-item ${params.page == 1 ? 'disabled' : ''}">
-                    <a class="page-link" onclick="changePage(${currentPage - 1})">Previous</a>
-                </li>`;
 
-            for (let page = 1; page <= totalPages; page++) {
-                html += `
-                <li class="page-item ${page === currentPage ? 'active' : ''} ">
-                    <a class="page-link" onclick="changePage(${page})">${page}</a>
-                </li>`;
-            }
 
-            html += `
-                <li class="page-item ${params.page == totalPages ? 'disabled' : ''}">
-                    <a class="page-link"  onclick="changePage(${currentPage + 1})">Next</a>
-                </li>`;
-
-            document.getElementById('pagination').innerHTML = html;
-        }
-
-        function sortData() {
-            let html = `
-                                <tr align="center">
-                    <th>
-                        ID
-                        <a href="">
-                            <span class="fa fa-sort"></span>
-                        </a>
-                    </th>
-                    <th>
-                        String
-                        <a href="">
-                            <span class="fa fa-sort"></span>
-                        </a>
-                    </th>
-                    <th>
-                        Integer
-                        <a href="">
-                            <span class="fa fa-sort"></span>
-                        </a>
-                    </th>
-                    <th>
-                        Float
-                        <a href="">
-                            <span class="fa fa-sort"></span>
-                        </a>
-                    </th>
-                    <th>
-                        Date
-                        <a href="">
-                            <span class="fa fa-sort"></span>
-                        </a>
-                    </th>
-                    <th>
-                        Boolean
-                        <a href="">
-                            <span class="fa fa-sort"></span>
-                        </a>
-                    </th>
-                    <th>Action</th>
-                </tr>
-                `
-            document.getElementById('data-head').innerHTML = html
-        }
-
-        function showAdd() {
-            document.getElementById("create-form").style.display = 'block'
-        }
-        function closeAdd() {
-            document.getElementById("create-form").style.display = 'none'
-        }
         async function createData(number, string, integer, float, date, boolean) {
             try {
                 const data = {
@@ -347,13 +269,10 @@
                 };
 
                 // Check if any field is empty
-                for (const key in data) {
-                    if (!data[key]) {
-                        alert('Please fill in all fields');
-                        return;
-                    }
+                if (!number || !string || !integer || !float || !date || !boolean) {
+                    alert('Please,Insert the data')
+                    return
                 }
-
                 const response = await fetch('http://localhost:3100/data', {
                     method: 'POST',
                     headers: {
@@ -380,7 +299,6 @@
                 console.log(error);
             }
         }
-
         async function updateData(id) {
             try {
                 const number = document.getElementById('id').value; // Assuming 'number' is the ID of the input field for the number value
@@ -446,7 +364,119 @@
                 console.log(error);
             }
         }
-        readData()
+        function displayData(data, sortby, sortorder) {
+            let html = "";
+            console.log("sortBy:", sortby);
+            console.log("sortOrder:", sortorder);
+            data.forEach((item, index) => {
+                html += `
+        <tr>
+            <td>${item.number}</td>
+            <td>${item.string}</td>
+            <td>${item.integer}</td>
+            <td>${item.float}</td>
+            <td>${item.date}</td>
+            <td>${item.boolean}</td>
+            <td>
+                <button class="btn btn-success btn-sm" onclick="updateData('${item._id}')">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteData('${item._id}')">Hapus</button>
+            </td>
+        </tr>`;
+            });
+            document.getElementById('data-body').innerHTML = html;
+        }
+        function sortData(sortby, sortorder) {
+            // console.log(sortBy, sortOrder)
+            let html = `
+                <tr align="center">
+                    <th>
+                        ID
+                        <a href="javascript:void(0)" onclick="changeSort('number', '${sortby == 'number' && sortorder == 'asc' ? 'desc' : 'asc'}')">
+                            <span class="fa ${sortby === 'number' ? (sortorder === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></span>
+                        </a>
+                    </th>
+                    <th>
+
+                        String
+                        <a href="javascript:void(0)" onclick="changeSort('string', '${sortby == 'string' && sortorder == 'asc' ? 'desc' : 'asc'}')">
+                            <span class="fa ${sortby === 'string' ? (sortorder === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></span>
+                        </a>
+                    </th>
+                    <th>
+                        Integer
+                        <a href="javascript:void(0)" onclick="changeSort('integer', '${sortby == 'integer' && sortorder == 'asc' ? 'desc' : 'asc'}')">
+                            <span class="fa ${sortby === 'integer' ? (sortorder === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></span>
+                        </a>
+                    </th>
+                    <th>
+                        Float
+                        <a href="javascript:void(0)" onclick="changeSort('float', '${sortby == 'float' && sortorder == 'asc' ? 'desc' : 'asc'}')">
+                            <span class="fa ${sortby === 'float' ? (sortorder === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></span>
+                        </a>
+                    </th>
+                    <th>
+                        Date
+                        <a href="javascript:void(0)" onclick="changeSort('date', '${sortby == 'date' && sortorder == 'asc' ? 'desc' : 'asc'}')">
+                            <span class="fa ${sortby === 'date' ? (sortorder === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></span>
+                        </a>
+                    </th>
+                    <th>
+                        Boolean
+                        <a href="javascript:void(0)" onclick="changeSort('boolean', '${sortby == 'boolean' && sortorder == 'asc' ? 'desc' : 'asc'}')">
+                            <span class="fa ${sortby === 'boolean' ? (sortorder === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></span>
+                        </a>
+                    </th>
+                    <th>Action</th>
+                </tr>
+                `
+            document.getElementById('data-head').innerHTML = html
+        }
+        function pagination(currentPage, totalPages) {
+            let html = `
+                <li class="page-item ${params.page == 1 ? 'disabled' : ''}">
+                    <a class="page-link" onclick="changePage(${currentPage - 1})">Previous</a>
+                </li>`;
+
+            for (let page = 1; page <= totalPages; page++) {
+                html += `
+                <li class="page-item ${page === currentPage ? 'active' : ''} ">
+                    <a class="page-link" onclick="changePage(${page})">${page}</a>
+                </li>`;
+            }
+
+            html += `
+                <li class="page-item ${params.page == totalPages ? 'disabled' : ''}">
+                    <a class="page-link"  onclick="changePage(${currentPage + 1})">Next</a>
+                </li>`;
+
+            document.getElementById('pagination').innerHTML = html;
+        }
+        function changePage(page) {
+            console.log('Page:', page);
+            params.page = page;
+            // error handle for default pagination to see if the data still not sorted, the pagination still works
+            if (params.sortby) {
+                readData({ sortby: params.sortby, ...getFilterParams(), sortorder: params.sortorder, page: page });
+            } else {
+                readData({ ...getFilterParams(), page: page });
+            }
+        }
+
+
+        function changeSort(sortby, sortorder) {
+            console.log(`SortBy: ${sortby}, SortOrder: ${sortorder}`);
+            params.sortby = sortby; // Update sortby parameter in params
+            params.sortorder = sortorder; // Update sortorder parameter in params
+            readData({ sortby, sortorder, ...getFilterParams(), page: params.page }); // Pass sorting parameters and current page
+        }
+
+        function showAdd() {
+            document.getElementById("create-form").style.display = 'block'
+        }
+        function closeAdd() {
+            document.getElementById("create-form").style.display = 'none'
+        }
+        readData(params);
     </script>
 </body>
 
