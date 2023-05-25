@@ -253,10 +253,6 @@
                 // Handle error, display a message
             }
         }
-
-
-
-
         async function createData(number, string, integer, float, date, boolean) {
             try {
                 const data = {
@@ -461,8 +457,6 @@
                 readData({ ...getFilterParams(), page: page });
             }
         }
-
-
         function changeSort(sortby, sortorder) {
             console.log(`SortBy: ${sortby}, SortOrder: ${sortorder}`);
             params.sortby = sortby; // Update sortby parameter in params
