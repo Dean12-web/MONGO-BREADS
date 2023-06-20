@@ -150,6 +150,64 @@
             <button type="submit" class="btn btn-primary">Save</button>
             <a onclick="closeAdd()" class="btn btn-secondary">Close</a>
         </form>
+        <br>
+        <form id="edit-form" style="display: none;">
+            <div class="row mb-3">
+                <label for="inputId" class="col-sm-4 col-form-label">
+                    ID
+                </label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" id="id" name="id">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="inputStr" class="col-sm-4 col-form-label">
+                    String
+                </label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" id="string" name="string">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="inputInt" class="col-sm-4 col-form-label">
+                    Integer
+                </label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" id="integer" name="integer">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="inputFloat" class="col-sm-4 col-form-label">
+                    Float
+                </label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" id="float" name="float">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="inputDate" class="col-sm-4 col-form-label">
+                    Date
+                </label>
+                <div class="col-sm-4">
+                    <input type="date" class="form-control" id="startDate" name="startDate">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="inputBol" class="col-sm-4 col-form-label">
+                    Boolean
+                </label>
+                <div class="col-sm-8">
+                    <select name="boolean" id="boolean" class="form-select">
+                        <option>Choose the boolean</option>
+                        <option value="true">True</option>
+                        <option value="false">False</option>
+                    </select>
+                </div>
+            </div>
+            <!-- <button class="btn btn-primary">Search</button> -->
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a onclick="closeEdit()" class="btn btn-secondary">Close</a>
+        </form>
     </div>
     <br>
     <div class="container">
@@ -376,6 +434,7 @@
             <td>
                 <button class="btn btn-success btn-sm" onclick="updateData('${item._id}')">Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteData('${item._id}')">Hapus</button>
+                <button class="btn btn-primary btn-sm" onclick="showEdit('${item._id}')">Show</button>
             </td>
         </tr>`;
             });
@@ -469,6 +528,30 @@
         }
         function closeAdd() {
             document.getElementById("create-form").style.display = 'none'
+        }
+        async function showEdit(id) {
+            if (id === undefined) {
+                console.error('Error: ID is undefined');
+                return;
+            }
+            const form = document.getElementById("edit-form");
+            try {
+                const response = await fetch(`http://localhost:3100/data/edit/${id}`)
+                const data = await response.json();
+
+                form.querySelector("#id").value = data[0].number;
+                form.querySelector("#string").value = data[0].string;
+                form.querySelector("#integer").value = data[0].integer;
+                form.querySelector("#float").value = data[0].float;
+                form.querySelector("#startDate").value = data[0].date;
+                form.querySelector("#boolean").value = data[0].boolean
+            } catch (error) {
+                console.log('Error : ', error)
+            }
+            form.style.display = 'block';
+        }
+        function closeEdit() {
+            document.getElementById("edit-form").style.display = 'none'
         }
         readData(params);
     </script>

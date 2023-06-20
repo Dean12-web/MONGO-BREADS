@@ -41,8 +41,9 @@ router.get('/', async function (req, res, next) {
 
         const db = req.app.locals.db;
         const collection = db.collection('data');
+        // console.log(coll ection)
         let query = collection.find(params.length > 0 ? { $and: params } : {});
-
+        // console.log(query)
         const page = parseInt(req.query.page) || 1;
         const limit = 3;
         const offset = (page - 1) * limit;
@@ -63,8 +64,8 @@ router.get('/', async function (req, res, next) {
             const formattedDate = moment(new Date(item.date)).format('YYYY-MMMM-DD');
             processData.push({ ...item, date: formattedDate });
         });
-
-        res.json({
+        // console.log(processData)
+        res.status(200).json({
             data: processData,
             page: page,
             pages: pages,
@@ -80,6 +81,19 @@ router.get('/', async function (req, res, next) {
     }
 });
 
+router.get('/edit/:id', async (req,res,next)=>{
+    const{id} = req.params
+    const db = req.app.locals.db;
+    const collection = db.collection('data');
+    const data = await collection.find({_id: new ObjectID(id)}).toArray();
+    console.log(data)
+    const processData = [];
+    data.forEach(item => {
+        const formattedDate = moment(item.date).format('YYYY-MMMM-DD');
+        processData.push({ ...item, date: formattedDate })
+    });
+    res.json(processData)
+})
 
 
 
@@ -92,7 +106,7 @@ router.put('/:id', async (req, res) => {
         const result = await collection.updateMany({ _id: new ObjectID(id) }, {
             $set: { number: parseInt(number), string: string, integer: parseInt(integer), float: parseFloat(float), date: date }
         });
-        res.json(result)
+        res.status(201).json(result)
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: "Error Updating data" })
@@ -116,7 +130,7 @@ router.post('/', async (req, res) => {
             date: date,
             boolean: boolean === 'true'
         })
-        res.json(result)
+        res.status(200).json(result)
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Error Creating data" })
@@ -131,7 +145,7 @@ router.delete('/:id', async (req, res, next) => {
         const collection = db.collection('data');
         const result = await collection.deleteOne({ _id: new ObjectID(id) });
         console.log(result)
-        res.json(result);
+        res.status(200).json(result);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Error Deleting the data" });
