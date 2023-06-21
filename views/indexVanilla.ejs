@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
     <script src="https://kit.fontawesome.com/6ea2cb925f.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <style>
         .sort-icon {
             margin-left: 5px;
@@ -157,7 +158,7 @@
                     ID
                 </label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" id="id" name="id">
+                    <input type="text" class="form-control" id="id" name="id" readonly>
                 </div>
             </div>
             <div class="row mb-3">
@@ -420,8 +421,6 @@
         }
         function displayData(data, sortby, sortorder) {
             let html = "";
-            console.log("sortBy:", sortby);
-            console.log("sortOrder:", sortorder);
             data.forEach((item, index) => {
                 html += `
         <tr>
@@ -441,7 +440,6 @@
             document.getElementById('data-body').innerHTML = html;
         }
         function sortData(sortby, sortorder) {
-            // console.log(sortBy, sortOrder)
             let html = `
                 <tr align="center">
                     <th>
@@ -543,7 +541,7 @@
                 form.querySelector("#string").value = data[0].string;
                 form.querySelector("#integer").value = data[0].integer;
                 form.querySelector("#float").value = data[0].float;
-                form.querySelector("#startDate").value = data[0].date;
+                form.querySelector("#startDate").value = moment(new Date(data[0].date)).format('YYYY-MM-DD');
                 form.querySelector("#boolean").value = data[0].boolean
             } catch (error) {
                 console.log('Error : ', error)
